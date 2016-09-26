@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天室</title>
+
+    <link href="/static/bootstrap/css/custom.css" rel="stylesheet">
+    <link href="/static/bootstrap/css/bootstrap.css" rel="stylesheet">
+
+
+</head>
+<body class="body1">
+<div>
+    {#    {% if user.is_authenticated %}#}
+    {% if log == 1 %}
+        <div class="login">
+            <div id="author">{{ username }}</div>
+            <div><a href="{% url 'logout' %}">注销</a></div>
+        </div>
+        <div class="chat">
+            <div class="title">
+                <h2>聊天室</h2>
+            </div>
+            <div class="content" id="lol">
+
+            </div>
+            <div class="bottom clearfix">
+                <div class="msg" >
+                    <textarea id="message" rows="3" cols="80"></textarea>
+                </div>
+                <div class="left submit">
+                    <input type="button" class="btnn" value="发送" onclick="SendMsg();"/>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="logmiddle">
+            <a href="{% url 'log' %}"><h1>登录</h1></a>
+        </div>
+
+
+    {% endif %}
+</div>
+
+<script>
+
+    function SendMsg() {
+
+        var value = $('#message').val();
+        $('#message').val('');
+        $.ajax({
+            url: '/submitchat/',
+            data: {data: value},
+            type: 'POST',
+            success: function (callback) {
+                var data1 = jQuery.parseJSON(callback);
+                if (data1.status == 1) {
+                    var name = data1.author;
+                    var time = data1.create_time;
+                    var htm = "<div><div>" + name + "  --" + time + "</div><div>" + value + "</div></div>";
+                    $('#lol').append(htm);
+                    window.last_id = data1.id;
+                    var height = document.getElementById("lol").scrollHeight;
+                    $("#lol").scrollTop(height);
+                } else {
+                    alert('数据错误');
+                }
+            }
+        });
+    }
+    ;
+    setInterval('GetChat()', 2000);
+    frist_log = 1;
+
+    function GetChat() {
+        if (frist_log == 1) {
+            $.ajax({
+                url: '/getchat/',
+                type: 'POST',
+                success: function (callback) {
+
+                    callback = jQuery.parseJSON(callback);
+                    window.last_id = callback[0].id;
+                    callback = callback.reverse();
+                    $.each(callback, function (k, v) {
+                        var name = v.author__name;
+                        var time = v.add_time;
+                        var value = v.comment;
+                        var htm = "<div><div>" + name + "  --" + time + "</div><div>" + value + "</div></div>";
+                        $('#lol').append(htm);
+                    });
+                    frist_log = 0;
+                     var height = document.getElementById("lol").scrollHeight;
+                    $("#lol").scrollTop(height);
+                }
+            });
+        } else {
+            $.ajax({
+                url: '/getchat2/',
+                data: {lastid: window.last_id},
+                type: 'POST',
+                success: function (callback) {
+
+
+                    callback = jQuery.parseJSON(callback);
+                    if (callback.length > 0) {
+
+                        window.last_id = callback[callback.length - 1].id;
+                        $.each(callback, function (k, v) {
+                            var name = v.author__name;
+                            var time = v.add_time;
+                            var value = v.comment;
+                            var htm = "<div><div>" + name + "  --" + time + "</div><div>" + value + "</div></div>";
+                            $('#lol').append(htm);
+                        });
+                         var height = document.getElementById("lol").scrollHeight;
+                         $("#lol").scrollTop(height);
+                    }
+                }
+            });
+        }
+    }
+
+</script>
+<script src="/static/bootstrap/js/jquery.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+
+</body>
+</html>

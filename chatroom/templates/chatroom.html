@@ -1,0 +1,11 @@
+  var callback = jQuery.parseJSON(callback);
+                if (callback.status == 1) {
+
+                    var name = callback.data.author;
+                    var time = vallback.data.create_time;
+                    var htm = "<div><div>" + name + "  --" + time + "</div><div>" + value + "</div></div>";
+                    $('#lol').append(htm);
+                } else {
+                    alert('数据错误')
+                }
+                ;
